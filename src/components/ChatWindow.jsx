@@ -2,11 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import Message from './Message';
 import DataModal from './DataModal';
 import { sendChatMessageApi, getKnowledgeApi } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Send, Trash2, Bot, AlertCircle, Loader2 } from 'lucide-react';
 
 const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 
 const ChatWindow = () => {
+  const { user } = useAuth();
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -61,26 +63,44 @@ const ChatWindow = () => {
     const emailMatch = userText.match(EMAIL_REGEX);
 
     if (emailMatch) {
-      const email = emailMatch[0];
-      setDetectedEmail(email);
+      const enteredEmail = emailMatch[0].toLowerCase().trim();
+      const currentUserEmail = user?.email ? user.email.toLowerCase().trim() : '';
 
-      // Post message in chat without broadcasting sensitive email
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          sender: 'user',
-          text: '[Gmail Verified]',
-        },
-        {
-          id: Date.now() + 1,
-          sender: 'assistant',
-          text: `Gmail verified. Opening pop-up modal to add your text data...`,
-        },
-      ]);
+      const isAuthorized = currentUserEmail
+        ? enteredEmail === currentUserEmail
+        : enteredEmail === 'amnaatariq005@gmail.com';
 
-      // Open pop-up modal
-      setIsModalOpen(true);
+      if (isAuthorized) {
+        setDetectedEmail(enteredEmail);
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            sender: 'user',
+            text: '[Gmail Verified]',
+          },
+          {
+            id: Date.now() + 1,
+            sender: 'assistant',
+            text: `Gmail verified. Opening pop-up modal to add your text data...`,
+          },
+        ]);
+        setIsModalOpen(true);
+      } else {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now(),
+            sender: 'user',
+            text: userText,
+          },
+          {
+            id: Date.now() + 1,
+            sender: 'assistant',
+            text: `Access Denied: Only your registered email can open the data modal.`,
+          },
+        ]);
+      }
       return;
     }
 
