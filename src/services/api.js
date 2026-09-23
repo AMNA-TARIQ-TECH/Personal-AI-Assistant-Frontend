@@ -39,6 +39,10 @@ export const registerApi = (data) => api.post('/auth/register', data);
 export const loginApi = (data) => api.post('/auth/login', data);
 export const getMeApi = () => api.get('/auth/me');
 
+// OTP email verification endpoints
+export const sendOtpApi = (email) => api.post('/auth/send-otp', { email });
+export const verifyOtpApi = (email, otp) => api.post('/auth/verify-otp', { email, otp });
+
 // Knowledge endpoints
 export const getKnowledgeApi = () => api.get('/knowledge');
 export const saveKnowledgeApi = (text) => api.post('/knowledge', { text });
